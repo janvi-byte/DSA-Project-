@@ -1,0 +1,98 @@
+import heapq
+
+# --------------------- Patient Class ---------------------
+class Patient:
+    def __init__(self, pid, name, age, problem_type, severity=0):
+        self.pid = pid
+        self.name = name
+        self.age = age
+        self.problem_type = problem_type
+        self.severity = severity  # Used for priority patients
+
+    def __lt__(self, other):
+        # For priority queue (higher severity = higher priority)
+        return self.severity > other.severity
+
+
+# --------------------- Hospital System ---------------------
+class HospitalSystem:
+    def __init__(self):
+        self.normal_queue = []       # FIFO queue for normal patients
+        self.priority_queue = []     # Priority queue for emergency patients
+        self.pid_counter = 1
+
+    # ---------- Add a new patient ----------
+    def add_patient(self):
+        name = input("Enter patient name: ")
+        age = int(input("Enter age: "))
+        problem_type = input("Enter problem type (normal/emergency): ").lower()
+
+        if problem_type == "emergency":
+            severity = int(input("Enter severity level (1-10): "))
+            patient = Patient(self.pid_counter, name, age, problem_type, severity)
+            heapq.heappush(self.priority_queue, patient)
+            print(f"🚨 Emergency patient added with severity {severity} (ID: {self.pid_counter})")
+        else:
+            patient = Patient(self.pid_counter, name, age, problem_type)
+            self.normal_queue.append(patient)
+            print(f"🩺 Normal patient added to queue (ID: {self.pid_counter})")
+
+        self.pid_counter += 1
+
+    # ---------- Doctor attends patient ----------
+    def attend_patient(self):
+        if self.priority_queue:
+            patient = heapq.heappop(self.priority_queue)
+            print(f"✅ Attending Emergency Patient: {patient.name} (Severity: {patient.severity})")
+        elif self.normal_queue:
+            patient = self.normal_queue.pop(0)
+            print(f"✅ Attending Normal Patient: {patient.name}")
+        else:
+            print("🏥 No patients waiting.")
+
+    # ---------- Display all waiting patients ----------
+    def display_patients(self):
+        if not self.priority_queue and not self.normal_queue:
+            print("🕒 No patients waiting.")
+            return
+
+        print("\n--- Waiting Patients ---")
+
+        if self.priority_queue:
+            print("\n🚨 Emergency Patients (High Priority):")
+            for p in sorted(self.priority_queue, key=lambda x: x.severity, reverse=True):
+                print(f"ID: {p.pid} | Name: {p.name} | Age: {p.age} | Severity: {p.severity}")
+
+        if self.normal_queue:
+            print("\n🩺 Normal Patients (FIFO):")
+            for p in self.normal_queue:
+                print(f"ID: {p.pid} | Name: {p.name} | Age: {p.age}")
+
+    # ---------- Menu ----------
+    def run(self):
+        while True:
+            print("\n===== HOSPITAL PATIENT MANAGEMENT =====")
+            print("1. Add New Patient")
+            print("2. Attend Next Patient")
+            print("3. Display Waiting Patients")
+            print("4. Exit")
+
+            choice = input("Enter your choice: ")
+
+            if choice == "1":
+                self.add_patient()
+            elif choice == "2":
+                self.attend_patient()
+            elif choice == "3":
+                self.display_patients()
+            elif choice == "4":
+                print("Exiting system. Goodbye!")
+                break
+            else:
+                print("Invalid choice! Try again.")
+
+
+# --------------------- Run Program ---------------------
+if __name__ == "__main__":
+    system = HospitalSystem()
+    system.run()
