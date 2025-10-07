@@ -1,0 +1,178 @@
+# ---------------- Railway Ticket Booking using Linked List & Queue ----------------
+
+MAX_SEATS = 5  # total seats available
+
+
+# ---------------- Linked List Node for Booked Passengers ----------------
+class Passenger:
+    def __init__(self, pid, name, age, gender, train_no, seat_pref):
+        self.pid = pid
+        self.name = name
+        self.age = age
+        self.gender = gender
+        self.train_no = train_no
+        self.seat_pref = seat_pref
+        self.next = None
+
+
+# ---------------- Queue Node for Waiting List ----------------
+class WaitingPassenger:
+    def __init__(self, pid, name, age, gender, train_no, seat_pref):
+        self.pid = pid
+        self.name = name
+        self.age = age
+        self.gender = gender
+        self.train_no = train_no
+        self.seat_pref = seat_pref
+        self.next = None
+
+
+# ---------------- Main Booking System ----------------
+class RailwaySystem:
+    def __init__(self):
+        self.booked_head = None
+        self.front = None
+        self.rear = None
+        self.seat_count = 0
+        self.pid_counter = 1
+
+    # ---------- Add Passenger ----------
+    def add_passenger(self):
+        name = input("Enter Name: ")
+        age = int(input("Enter Age: "))
+        gender = input("Enter Gender (M/F): ")
+        train_no = int(input("Enter Train No: "))
+        seat_pref = input("Enter Seat Preference: ")
+
+        if self.seat_count < MAX_SEATS:
+            self.book_seat(name, age, gender, train_no, seat_pref)
+        else:
+            self.enqueue(name, age, gender, train_no, seat_pref)
+
+    # ---------- Book Seat (Linked List) ----------
+    def book_seat(self, name, age, gender, train_no, seat_pref):
+        new_passenger = Passenger(self.pid_counter, name, age, gender, train_no, seat_pref)
+        self.pid_counter += 1
+
+        if self.booked_head is None:
+            self.booked_head = new_passenger
+        else:
+            temp = self.booked_head
+            while temp.next:
+                temp = temp.next
+            temp.next = new_passenger
+
+        self.seat_count += 1
+        print(f"✅ Seat booked successfully! Ticket ID: {new_passenger.pid}")
+
+    # ---------- Add to Waiting List (Queue) ----------
+    def enqueue(self, name, age, gender, train_no, seat_pref):
+        new_waiting = WaitingPassenger(self.pid_counter, name, age, gender, train_no, seat_pref)
+        self.pid_counter += 1
+
+        if self.rear is None:
+            self.front = self.rear = new_waiting
+        else:
+            self.rear.next = new_waiting
+            self.rear = new_waiting
+
+        print(f"⚠️ No seats available. Added to waiting list (ID: {new_waiting.pid})")
+
+    # ---------- Cancel Ticket ----------
+    def cancel_ticket(self):
+        if self.booked_head is None:
+            print("❌ No booked tickets to cancel.")
+            return
+
+        pid = int(input("Enter Ticket ID to cancel: "))
+        temp = self.booked_head
+        prev = None
+
+        while temp and temp.pid != pid:
+            prev = temp
+            temp = temp.next
+
+        if not temp:
+            print("❌ Ticket ID not found.")
+            return
+
+        if prev is None:
+            self.booked_head = temp.next
+        else:
+            prev.next = temp.next
+
+        self.seat_count -= 1
+        print("🗑️ Ticket cancelled successfully.")
+
+        # Assign seat to next waiting passenger
+        if self.front:
+            print("🎟️ Assigning seat to first waiting passenger...")
+            self.dequeue_and_book()
+
+    # ---------- Move Passenger from Waiting to Booked ----------
+    def dequeue_and_book(self):
+        if self.front is None:
+            return
+
+        temp = self.front
+        self.book_seat(temp.name, temp.age, temp.gender, temp.train_no, temp.seat_pref)
+        self.front = self.front.next
+        if self.front is None:
+            self.rear = None
+
+    # ---------- Display Booked Tickets ----------
+    def display_booked(self):
+        if self.booked_head is None:
+            print("🚫 No booked tickets.")
+            return
+
+        print("\n--- Booked Tickets ---")
+        temp = self.booked_head
+        while temp:
+            print(f"ID: {temp.pid} | Name: {temp.name} | Age: {temp.age} | Gender: {temp.gender} | Train: {temp.train_no} | Seat: {temp.seat_pref}")
+            temp = temp.next
+
+    # ---------- Display Waiting List ----------
+    def display_waiting(self):
+        if self.front is None:
+            print("🚫 Waiting list is empty.")
+            return
+
+        print("\n--- Waiting List ---")
+        temp = self.front
+        while temp:
+            print(f"ID: {temp.pid} | Name: {temp.name} | Age: {temp.age} | Gender: {temp.gender} | Train: {temp.train_no} | Seat: {temp.seat_pref}")
+            temp = temp.next
+
+
+# ---------------- Main Menu ----------------
+def main():
+    system = RailwaySystem()
+
+    while True:
+        print("\n===== RAILWAY TICKET BOOKING SYSTEM =====")
+        print("1. Add Passenger")
+        print("2. Cancel Ticket")
+        print("3. Display Booked Tickets")
+        print("4. Display Waiting List")
+        print("5. Exit")
+
+        choice = input("Enter choice: ")
+
+        if choice == "1":
+            system.add_passenger()
+        elif choice == "2":
+            system.cancel_ticket()
+        elif choice == "3":
+            system.display_booked()
+        elif choice == "4":
+            system.display_waiting()
+        elif choice == "5":
+            print("Exiting system. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Try again!")
+
+
+if __name__ == "__main__":
+    main()
